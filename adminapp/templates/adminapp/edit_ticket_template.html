@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Ticket Template</title>
+</head>
+<body>
+    <h1>Edit Ticket Template</h1>
+    <form method="post">
+        {% csrf_token %}
+        <textarea name="template" rows="20" cols="100">{{ template }}</textarea><br>
+        <button type="submit">Save</button>
+    </form>
+</body>
+</html>

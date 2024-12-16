@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Панель оператора</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            function updateButtons() {
+                $('form.start-service-form').each(function () {
+                    var $startButtonForm = $(this);
+                    var $finishButtonForm = $startButtonForm.siblings('form.finish-service-form');
+                    var $redirectButton = $startButtonForm.siblings('button.redirect-service');
+                    var $repeatButton = $startButtonForm.siblings('button.repeat-call');
+
+                    if ($startButtonForm.data('started') === true) {
+                        $startButtonForm.hide();
+                        $finishButtonForm.show();
+                        $redirectButton.show();
+                        $repeatButton.hide();
+                    } else {
+                        $startButtonForm.show();
+                        $finishButtonForm.hide();
+                        $redirectButton.hide();
+                        $repeatButton.show();
+                    }
+                });
+            }
+
+            $(document).ready(function() {
+                $(document).on('click', 'button.redirect-service', function(e) {
+                    e.preventDefault();
+                    const ticketId = $(this).data('ticket-id');
+                    $('#redirect-ticket-id').val(ticketId);
+                    $('#redirect-modal').show();
+                });
+
+                $(document).on('click', '#redirect-submit', function(e) {
+                    e.preventDefault();
+                    const ticketId = $('#redirect-ticket-id').val();
+                    const operatorId = $('#redirect-operator').val();
+
+                    $.ajax({
+                        url: '/operator/redirect/' + ticketId + '/',
+                        type: 'POST',
+                        data: {
+                            operator_id: operatorId,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'
+                        },
+                        success: function() {
+                            $('#redirect-modal').hide();
+                            location.reload();
+                        },
+                        error: function() {
+                            alert('Ошибка перенаправления');
+                        }
+                    });
+                });
+
+                $(document).on('click', '#redirect-cancel', function(e) {
+                    e.preventDefault();
+                    $('#redirect-modal').hide();
+                });
+            });
+
+            $(document).on('submit', 'form.start-service-form', function (e) {
+                e.preventDefault();
+                var $form = $(this);
+                $.ajax({
+                    type: 'POST',
+                    url: $form.attr('action'),
+                    data: $form.serialize(),
+                    success: function () {
+                        $form.data('started', true);
+                        updateButtons();
+                    },
+                    error: function () {
+                        alert('Error starting service. Please try again.');
+                    }
+                });
+            });
+
+            $(document).on('click', 'button.repeat-call', function (e) {
+                e.preventDefault();
+                var ticketNumber = $(this).data('ticket-number');
+                var windowNumber = "{{ operator.window_number }}";
+                var textToSpeak = "Клиент с талоном " + ticketNumber + " подойдите к окну " + windowNumber;
+                speakText(textToSpeak);
+            });
+
+            function speakText(text) {
+                if ('speechSynthesis' in window) {
+                    var utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'ru-RU';
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+
+            // Initial button update
+            updateButtons();
+        });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2, h3 {
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .ticket-lists {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .ticket-list {
+            width: 100%;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin: 10px 0;
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            background-color: #004080;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .btn.repeat-call {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        .btn.repeat-call:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Добро пожаловать, {{ operator.user.username }}!</h1>
+        <h2>Окно номер: {{ operator.window_number }}</h2>
+        <div class="ticket-lists">
+            <!-- Waiting Tickets -->
+            <div class="ticket-list">
+                <h3>Лист ожидания</h3>
+                <ul>
+                    {% for ticket in waiting_tickets %}
+                        <li>
+                            <span>Талон {{ ticket.number }} - {{ ticket.issued_at }}</span>
+                            <form method="POST" action="{% url 'call_ticket' ticket.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn">Вызвать</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="ticket-list">
+                <h3>Талоны в обработке</h3>
+                <ul>
+                    {% for ticket in in_service_tickets %}
+                        <li data-started="{{ ticket.start_time }}">
+                            <span>Талон {{ ticket.number }} - {{ ticket.issued_at }}</span>
+
+                            <form method="POST" action="{% url 'start_service' ticket.id %}" class="start-service-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn start-service">Начать обработку</button>
+                            </form>
+
+                            <form method="POST" action="{% url 'finish_service' ticket.id %}" class="finish-service-form" style="display: none;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Закончить обработку</button>
+                            </form>
+
+                            <form method="POST" action="{% url 'cancel_service' ticket.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Отменить талон</button>
+                            </form>
+
+                            <button type="button" class="btn redirect-service" data-ticket-id="{{ ticket.id }}" style="display:none;">Перенаправить клиента</button>
+                            <button type="button" class="btn repeat-call" data-ticket-id="{{ ticket.id }}">Вызвать повторно</button>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+           <div class="ticket-list">
+                <h3>Обработанные талоны</h3>
+                <ul>
+                    {% for ticket in served_tickets %}
+                        <li>
+                            Талон {{ ticket.number }} - {{ ticket.issued_at }} - Обслужен {{ ticket.served_by }}
+                            {% if ticket.start_time and ticket.end_time %}
+                                <span>Длительность обслуживания: {{ ticket.duration }}</span>
+                            {% endif %}
+                            {% if ticket.is_canceled %}
+                                <span style="color:red;">Клиент отменён</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="redirect-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>Выберите оператора для перенаправления</h2>
+            <input type="hidden" id="redirect-ticket-id">
+            <label for="redirect-operator">Оператор:</label>
+            <select id="redirect-operator">
+                {% for operator in operators %}
+                    <option value="{{ operator.id }}">{{ operator.user.username }} - Окно {{ operator.window_number }}</option>
+                {% endfor %}
+            </select>
+            <button id="redirect-submit" class="btn">Подтвердить</button>
+            <button id="redirect-cancel" class="btn btn-danger">Закрыть</button>
+        </div>
+    </div>
+</body>
+</html>

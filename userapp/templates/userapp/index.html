@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Interface</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+    <script src="{% static 'js/scripts.js' %}" defer></script>
+    <style>
+        .category-card, .subcategory-card {
+            display: inline-block;
+            width: 200px;
+            margin: 10px;
+            padding: 20px;
+            border-radius: 5px;
+            color: #fff;
+            text-align: center;
+            cursor: pointer;
+        }
+        .subcategory-card {
+            background-color: #007bff;
+        }
+        /* Стиль для модального окна с талоном */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            text-align: center;
+        }
+    </style>
+    <script>
+        function showModal(ticketNumber, categoryName) {
+            const modal = document.getElementById('ticketModal');
+            document.getElementById('ticketNumber').textContent = ticketNumber;
+            document.getElementById('categoryName').textContent = categoryName;
+            modal.style.display = 'block';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                window.location.href = '/';
+            }, 5000); // Закрытие окна и возврат на главную через 5 секунд
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Select Ticket Category</h1>
+        <div class="categories">
+            {% for category in categories %}
+                <div class="category-card" style="background-color: {{ category.color }};">
+                    <h2>{{ category.name }}</h2>
+                    <p>{{ category.description }}</p>
+                    <div class="subcategories">
+                        {% for subcategory in category.subcategories.all %}
+                            <div class="subcategory-card" onclick="submitForm('{{ subcategory.id }}', '{{ subcategory.name }}')">
+                                <h3>{{ subcategory.name }}</h3>
+                                <p>{{ subcategory.description }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Модальное окно с информацией о талоне -->
+    <div id="ticketModal" class="modal">
+        <div class="modal-content">
+            <h1>Ваш талон</h1>
+            <p>Номер талона: <strong id="ticketNumber"></strong></p>
+            <p>Категория: <strong id="categoryName"></strong></p>
+        </div>
+    </div>
+
+    <form id="ticketForm" action="{% url 'create_ticket' %}" method="POST" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="subcategory_id" id="subcategory_id">
+    </form>
+
+    <script>
+        function submitForm(subcategoryId, subcategoryName) {
+            document.getElementById('subcategory_id').value = subcategoryId;
+            document.getElementById('ticketForm').submit();
+        }
+    </script>
+</body>
+</html>

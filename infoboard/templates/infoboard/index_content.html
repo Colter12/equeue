@@ -1,0 +1,9 @@
+<ul>
+    {% for ticket in tickets %}
+        {% if not ticket.is_canceled %}
+            <li>
+                Ticket {{ ticket.number }} - Window {{ ticket.operator.window_number }} - Called by {{ ticket.operator.user.username }}
+            </li>
+        {% endif %}
+    {% endfor %}
+</ul>

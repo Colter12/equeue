@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Статистика</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        table th {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div>
+        <h3>Статистика</h3>
+        <p>Обработанные билеты: <span id="processed-tickets">0</span></p>
+        <p>Билеты в обработке: <span id="in-progress-tickets">0</span></p>
+        <button id="details-btn" class="btn">Подробнее</button>
+    </div>
+
+    <div id="details-section" style="display: none;">
+        <h3>Фильтр по датам</h3>
+        <label for="start-date">Начальная дата:</label>
+        <input type="date" id="start-date">
+
+        <label for="end-date">Конечная дата:</label>
+        <input type="date" id="end-date">
+
+        <button id="filter-btn" class="btn">Фильтровать</button>
+
+        <table id="statistics-table">
+            <thead>
+                <tr>
+                    <th>Оператор</th>
+                    <th>Окно</th>
+                    <th>Длительность обработки</th>
+                    <th>Дата обработки</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in served_tickets %}
+                    <tr>
+                        <td>{{ ticket.number }}</td>
+                        <td>{{ ticket.issued_at }}</td>
+                        <td>
+                            {% if ticket.is_canceled %}
+                                Клиент отменён
+                            {% else %}
+                                {{ ticket.duration }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if ticket.is_canceled %}
+                                Клиент отменён
+                            {% else %}
+                                {{ ticket.served_by }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        setInterval(function() {
+            $.ajax({
+                url: '/statistics/',
+                success: function(data) {
+                    $('#total-tickets').text(data.total_tickets);
+                    $('#processed-tickets').text(data.processed_tickets);
+                    $('#in-progress-tickets').text(data.in_progress_tickets);
+                }
+            });
+        }, 5000);
+
+        $(document).ready(function () {
+            $('#details-btn').on('click', function () {
+                $('#details-section').toggle();
+            });
+
+            $('#filter-btn').on('click', function () {
+                const startDate = $('#start-date').val();
+                const endDate = $('#end-date').val();
+
+                if (!startDate || !endDate) {
+                    alert('Выберите обе даты!');
+                    return;
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/statistics/filter/',
+                    data: {
+                        start_date: startDate,
+                        end_date: endDate,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        const tableBody = $('#statistics-table tbody');
+                        tableBody.empty();
+
+                        response.data.forEach(row => {
+                            tableBody.append(`
+                                <tr>
+                                    <td>${row.operator}</td>
+                                    <td>${row.window}</td>
+                                    <td>${row.duration}</td>
+                                    <td>${row.date}</td>
+                                </tr>
+                            `);
+                        });
+                    },
+                    error: function () {
+                        alert('Ошибка загрузки данных');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

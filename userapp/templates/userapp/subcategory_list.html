@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Подкатегории</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .subcategories {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .subcategory-card {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            width: 200px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .subcategory-card:hover {
+            transform: scale(1.05);
+        }
+        .back-button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+.back-button:active {
+    background-color: #004080;
+}
+
+    </style>
+    <script>
+        function submitForm(subcategoryId) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{% url "create_ticket" %}';
+            form.innerHTML = '{% csrf_token %}';  // Добавляем токен CSRF
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'subcategory_id';
+            input.value = subcategoryId;
+
+            form.appendChild(input);
+            document.body.appendChild(form);  // Добавляем форму в body
+            form.submit();  // Отправляем форму
+        }
+    </script>
+</head>
+<body>
+    <h1>Подкатегории для {{ category.name }}</h1>
+    <div class="subcategories">
+        {% for subcategory in subcategories %}
+            <div class="subcategory-card" onclick="submitForm({{ subcategory.id }})">
+                <h3>{{ subcategory.name }}</h3>
+                <p>{{ subcategory.description }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    <button class="back-button" onclick="window.location.href='{% url 'category_list' %}'">Назад к категориям</button>
+
+</body>
+</html>

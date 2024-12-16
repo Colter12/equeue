@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Operator Panel</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Operator Panel</h1>
+        <ul>
+            {% for ticket in tickets %}
+                <li>
+                    Ticket {{ ticket.number }} - {{ ticket.issued_at }} -
+                    <a href="{% url 'serve_ticket' ticket.id %}">Serve</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

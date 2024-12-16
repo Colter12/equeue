@@ -1,0 +1,44 @@
+<div id="ticket-list">
+            <h3>Waiting Tickets</h3>
+            <ul>
+                {% for ticket in waiting_tickets %}
+                    <li>
+                        <span class="ticket-number">{{ ticket.number }}</span> - {{ ticket.issued_at }}
+                        <a href="{% url 'call_ticket' ticket.id %}">Call</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <h3>In Service Tickets</h3>
+            <ul>
+                {% for ticket in in_service_tickets %}
+                    <li>
+                        <span class="ticket-number">{{ ticket.number }}</span> - {{ ticket.issued_at }}
+                        <a href="#" class="repeat-call" data-ticket-id="{{ ticket.id }}">Repeat Call</a>
+                        <a href="{% url 'start_service' ticket.id %}" class="start-service" data-ticket-id="{{ ticket.id }}" data-started="false">Start Service</a>
+                        <a href="{% url 'finish_service' ticket.id %}" class="finish-service" data-ticket-id="{{ ticket.id }}" style="display:none;">Finish Service</a>
+                        <a href="{% url 'cancel_service' ticket.id %}" class="cancel-service" data-ticket-id="{{ ticket.id }}">Cancel Served</a>
+                        <a href="#" class="redirect-service" data-ticket-id="{{ ticket.id }}" style="display:none;">Redirect Client</a>
+                        {% if ticket.start_time and ticket.end_time %}
+                            <span>Duration: {{ ticket.duration }}</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+            <h3>Served Tickets</h3>
+            <ul>
+                {% for ticket in served_tickets %}
+                    <li>
+                        Ticket {{ ticket.number }} - {{ ticket.issued_at }} - Served by {{ ticket.served_by }}
+                        {% if ticket.is_canceled %}
+                            <span style="color: red;">(Client Canceled)</span>
+                        {% endif %}
+                        {% load custom_filters %}
+
+                        {% if ticket.start_time and ticket.end_time %}
+                            <span>Duration: {{ ticket.duration|format_duration }}</span>
+                        {% endif %}
+
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>

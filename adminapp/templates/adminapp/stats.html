@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticket Statistics</title>
+</head>
+<body>
+    <h1>Ticket Statistics</h1>
+    <table>
+        <tr>
+            <th>Ticket Number</th>
+            <th>Issued At</th>
+            <th>Served By</th>
+            <th>Category</th>
+        </tr>
+        {% for ticket in tickets %}
+        <tr>
+            <td>{{ ticket.number }}</td>
+            <td>{{ ticket.issued_at }}</td>
+            <td>{{ ticket.served_by }}</td>
+            <td>{{ ticket.subcategory.category.name if ticket.subcategory and ticket.subcategory.category else '' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{% url 'download_stats' %}">Download CSV</a>
+</body>
+</html>

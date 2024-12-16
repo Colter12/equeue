@@ -1,0 +1,21 @@
+<!-- userapp/templates/userapp/ticket_print.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Ticket</title>
+    <script>
+        // Перенаправление на главную страницу через 5 секунд
+        setTimeout(function() {
+            window.location.href = "{% url 'category_list' %}";
+        }, 5000);
+    </script>
+</head>
+<body>
+    <div class="ticket">
+        <h1>Ваш талон</h1>
+        <p>Номер талона: <strong>{{ ticket_number }}</strong></p>
+        <p>Категория: <strong>{{ category_name }}</strong></p>
+    </div>
+</body>
+</html>
